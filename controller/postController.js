@@ -141,17 +141,48 @@ exports.editPost = async (req, res) => {
 }
 
 // delete post by id
+// exports.deletePost = async (req, res) => {
+//     try {
+//         const post = await Post.findByIdAndDelete(req.params.id);
+//         if (!post) {
+//             return res.status(404).json({ error: "Post not found" });
+//         }
+//         return res.json({ message: "Post deleted successfully" });
+//     } catch (error) {
+//         return res.status(500).json({ error: error.message });
+//     }
+// }
+
+const fs = require("fs");
+const path = require("path");
+
 exports.deletePost = async (req, res) => {
-    try {
-        const post = await Post.findByIdAndDelete(req.params.id);
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
-        return res.json({ message: "Post deleted successfully" });
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
+  try {
+   
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
     }
-}
+
+  
+    if (post.image) {
+      const imagePath = path.join(__dirname, "../uploads", post.image); // Adjust the path as per your setup
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error("Error deleting image:", err);
+        }
+      });
+    }
+
+   
+    await Post.findByIdAndDelete(req.params.id);
+
+    return res.json({ message: "Post and associated image deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 
 // get post by id
 
